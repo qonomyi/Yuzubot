@@ -43,3 +43,31 @@ class ZZZClient(BaseClient):
             resp_cookies = resp.cookies
 
         return resp_cookies["e_nap_token"].value or ""
+
+    async def get_owned_agent_list(self, cookies: dict, zzz_uid: int) -> list:
+        data = await self._request(
+            "GET",
+            "https://sg-public-api.hoyolab.com/event/game_record_zzz/api/zzz/avatar/basic?server=prod_gf_jp&role_id="
+            + str(zzz_uid),
+            cookies,
+        )
+        data = cast(dict, data)
+
+        return data["data"].get("avatar_list") or []
+
+    async def get_agent_detail(
+        self, cookies: dict, zzz_uid: str, agent_id: int
+    ) -> dict:
+        data = {"avatar_list": [{"avatar_id": agent_id}]}
+        print(cookies)
+
+        detail = await self._request(
+            "POST",
+            "https://sg-public-api.hoyolab.com/event/nap_cultivate_tool/user/batch_avatar_detail_v2?region=prod_gf_jp&uid="
+            + str(zzz_uid),
+            cookies,
+            data,
+        )
+        detail = cast(dict, detail)
+
+        return detail

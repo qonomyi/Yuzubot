@@ -28,6 +28,7 @@ class Yuzubot(commands.Bot):
         await self.hoyolab_creds_db.execute(
             "CREATE TABLE IF NOT EXISTS creds("
             + "user_id INTEGER PRIMARY KEY,"
+            + "zzz_uid INTEGER,"
             + "cookies TEXT)"
         )
         await self.hoyolab_creds_db.commit()

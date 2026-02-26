@@ -54,8 +54,17 @@ class BuildCard(commands.Cog):
 
     @commands.command()
     async def g(self, ctx: Context) -> None:
-        with open("./resp.json", "r", encoding="utf-8") as f:
-            data = json.loads(f.read())
+        creds_query = await self.bot.hoyolab_creds_db.execute(
+            "SELECT * FROM creds WHERE user_id=?", (ctx.author.id,)
+        )
+        creds = await creds_query.fetchone()
+        if creds is None:
+            return
+
+        cookies = json.loads(creds[2])
+        print(cookies)
+
+        data = await self.bot.zzzclient.get_agent_detail(cookies, creds[1], 1431)
 
         container = ui.Container()
         media_gallery = ui.MediaGallery()

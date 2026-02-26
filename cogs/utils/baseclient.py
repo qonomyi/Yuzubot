@@ -20,7 +20,15 @@ class BaseClient:
         data: dict | None = None,
         return_raw_response: bool = False,
     ) -> dict | aiohttp.ClientResponse:
-        resp = await self.session.request(method, url, cookies=cookies, json=data)
+        headers = {
+            "x-rpc-lang": "ja-jp",
+            "x-rpc-language": "ja-jp",
+            "Accept-Language": "ja",
+        }
+
+        resp = await self.session.request(
+            method, url, cookies=cookies, json=data, headers=headers
+        )
 
         if return_raw_response:
             return resp

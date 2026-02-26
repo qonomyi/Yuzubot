@@ -18,7 +18,7 @@ class HoyoLab(commands.Cog):
         self.bot: Yuzubot = bot
 
     @commands.hybrid_command(name="hlregister")
-    async def hoyolab_login(self, ctx: Context, user_cookies: str) -> None:
+    async def hoyolab_register(self, ctx: Context, user_cookies: str) -> None:
         # Parse Cookies
         content = "Parsing cookies..."
         msg = await ctx.reply(content, ephemeral=True)
@@ -70,8 +70,8 @@ class HoyoLab(commands.Cog):
         cookies["e_nap_token"] = e_nap_token
 
         await self.bot.hoyolab_creds_db.execute(
-            "INSERT INTO creds VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET cookies = excluded.cookies;",
-            (ctx.author.id, json.dumps(cookies)),
+            "INSERT INTO creds VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET zzz_uid = excluded.zzz_uid, cookies = excluded.cookies;",
+            (ctx.author.id, zzz_uid, json.dumps(cookies)),
         )
         await self.bot.hoyolab_creds_db.commit()
 
