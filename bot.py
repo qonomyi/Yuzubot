@@ -1,18 +1,49 @@
 from __future__ import annotations
 
+import logging
+from logging.handlers import RotatingFileHandler
+
 import aiohttp
 import aiosqlite
 import discord
 from discord.ext import commands
 
 import config
-from cogs.utils.hoyoclient import HoYoClient
-from cogs.utils.zzzclient import ZZZClient
+from cogs.utils.clients import HoYoClient, ZZZClient
+
+log = logging.getLogger(__name__)
+
 
 initial_extensions = (
     "cogs.buildcard",
     "cogs.hoyolab",
 )
+
+
+def setup_logging():
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    dt_fmt = "%Y-%m-%d %H:%M:%S"
+    formatter = logging.Formatter(
+        "[{asctime}] [{levelname:<8}] {name}: {message}", dt_fmt, style="{"
+    )
+
+    file_handler = RotatingFileHandler(
+        filename="yuzubot.log",
+        encoding="utf-8",
+        maxBytes=32 * 1024 * 1024,  # 32MB
+        backupCount=5,
+    )
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.DEBUG)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(logging.INFO)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
 
 class Yuzubot(commands.Bot):
@@ -21,7 +52,8 @@ class Yuzubot(commands.Bot):
         super().__init__("y:", intents=intents)
 
     async def on_ready(self):
-        print("Ready")
+        assert self.user
+        log.info(f"Logged as {self.user} ({self.user.id})")
 
     async def setup_hook(self) -> None:
         self.hoyolab_creds_db = await aiosqlite.connect("./data/hoyolab_creds.db")
@@ -43,8 +75,8 @@ class Yuzubot(commands.Bot):
             try:
                 await self.load_extension(extension)
             except Exception as e:
-                print(e)
-                print(f"Failed to load extension {extension}.")
+                log.exception(e)
+                log.exception(f"Failed to load extension {extension}.")
         await self.load_extension("jishaku")
 
     async def close(self) -> None:
@@ -53,5 +85,7 @@ class Yuzubot(commands.Bot):
         await super().close()
 
 
+setup_logging()
+
 bot = Yuzubot()
-bot.run(config.token)
+bot.run(config.token, log_handler=None)

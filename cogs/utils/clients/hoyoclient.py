@@ -1,13 +1,8 @@
+from typing import cast
+
 import aiohttp
 
-from cogs.utils.baseclient import BaseClient
-
-
-class HoYoAPIError(Exception):
-    def __init__(self, retcode, message):
-        self.retcode = retcode
-        self.message = message
-        super().__init__(f"HoYoLab API Error {retcode}: {message}")
+from .baseclient import BaseClient
 
 
 class HoYoClient(BaseClient):
@@ -15,7 +10,7 @@ class HoYoClient(BaseClient):
         super().__init__(session)
 
     async def verify_l_token(self, cookies: dict) -> bool:
-        _ = await self._request(
+        await self._request(
             "POST",
             "https://passport-api-sg.hoyolab.com/account/ma-passport/token/verifyLToken",
             cookies,
@@ -30,5 +25,6 @@ class HoYoClient(BaseClient):
             + hl_uid,
             cookies,
         )
+        data = cast(dict, data)
 
         return data

@@ -14,3 +14,4 @@ data/*
 *testing.py
 resp.json
 config.py
+*.log

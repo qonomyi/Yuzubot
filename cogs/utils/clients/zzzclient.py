@@ -2,7 +2,7 @@ from typing import cast
 
 import aiohttp
 
-from cogs.utils.baseclient import BaseClient
+from .baseclient import BaseClient
 
 
 class ZZZClient(BaseClient):

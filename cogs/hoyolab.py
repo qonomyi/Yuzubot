@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import json
+import logging
 from http.cookies import SimpleCookie
 from typing import TYPE_CHECKING
 
 from discord.ext import commands
 from discord.ext.commands import Context
-
-from cogs.utils.hoyoclient import HoYoAPIError
+from utils.clients.baseclient import HoYoAPIError
 
 if TYPE_CHECKING:
     from bot import Yuzubot
+
+log = logging.getLogger(__name__)
 
 
 class HoyoLab(commands.Cog):
