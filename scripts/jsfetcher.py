@@ -34,8 +34,6 @@ def fetch_all_js():
             print(e)
             continue
 
-    print(js_ids)
-
     for id in js_ids:
         print(id)
         name = f"pc_{id}.js"
