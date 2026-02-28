@@ -67,6 +67,38 @@ def generate_professions(cd: list[str]) -> dict:
     return professions
 
 
+def generate_properties(cd: list[str]) -> dict:
+    properties = {}
+    for p in cd:
+        with open("./scripts/cache/" + p, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        properties_map = jsparser.find_id_map_by_value(content, "1", "hp")
+        if not properties_map:
+            continue
+
+        properties = properties_map
+        break
+
+    return properties
+
+
+def generate_skill_types(cd: list[str]) -> dict:
+    skill_types = {}
+    for p in cd:
+        with open("./scripts/cache/" + p, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        skill_types_map = jsparser.find_id_map_by_value(content, "0", "normal")
+        if not skill_types_map:
+            continue
+
+        skill_types = skill_types_map
+        break
+
+    return skill_types
+
+
 def download_images(cd) -> None:
     images_base = "https://act.hoyolab.com/app/zzz-game-record/images/"
     images = []
@@ -93,37 +125,46 @@ def download_images(cd) -> None:
 
 
 #
+if __name__ == "__main__":
+    zzz_data_path = Path("./data/zzz/images")
+    zzz_data_path.mkdir(parents=True, exist_ok=True)
 
-zzz_data_path = Path("./data/zzz/images")
-zzz_data_path.mkdir(parents=True, exist_ok=True)
+    js_cache_path = Path("./scripts/cache")
+    js_cache_path.mkdir(parents=True, exist_ok=True)
 
-js_cache_path = Path("./scripts/cache")
-js_cache_path.mkdir(parents=True, exist_ok=True)
+    jsfetcher.fetch_all_js()
 
-jsfetcher.fetch_all_js()
+    cache_list = os.listdir("./scripts/cache")
 
-cache_list = os.listdir("./scripts/cache")
+    elements, sub_elements = generate_elements(cache_list)
+    print()
+    with open("./data/zzz/elements.json", "w", encoding="utf-8") as f:
+        json.dump(elements, f, indent=2, ensure_ascii=False)
+        print("elements generated:", elements)
 
-elements, sub_elements = generate_elements(cache_list)
-print()
-with open("./data/zzz/elements.json", "w", encoding="utf-8") as f:
-    json.dump(elements, f, indent=2, ensure_ascii=False)
-    print("elements generated:", elements)
+    with open("./data/zzz/sub_elements.json", "w", encoding="utf-8") as f:
+        json.dump(sub_elements, f, indent=2, ensure_ascii=False)
+        print("sub_elements generated:", sub_elements)
 
-with open("./data/zzz/sub_elements.json", "w", encoding="utf-8") as f:
-    json.dump(sub_elements, f, indent=2, ensure_ascii=False)
-    print("sub_elements generated:", sub_elements)
+    professions = generate_professions(cache_list)
+    with open("./data/zzz/professions.json", "w", encoding="utf-8") as f:
+        json.dump(professions, f, indent=2, ensure_ascii=False)
+        print("professions generated:", professions)
 
+    properties = generate_properties(cache_list)
+    with open("./data/zzz/properties.json", "w", encoding="utf-8") as f:
+        json.dump(properties, f, indent=2, ensure_ascii=False)
+        print("properties generated:", properties)
 
-professions = generate_professions(cache_list)
-with open("./data/zzz/professions.json", "w", encoding="utf-8") as f:
-    json.dump(professions, f, indent=2, ensure_ascii=False)
-    print("professions generated:", professions)
+    skill_types = generate_skill_types(cache_list)
+    with open("./data/zzz/skill_types.json", "w", encoding="utf-8") as f:
+        json.dump(skill_types, f, indent=2, ensure_ascii=False)
+        print("skill_types generated:", skill_types)
 
-print("\nDownload images in 3s")
-time.sleep(3)
+    print("\nDownload images in 3s")
+    time.sleep(3)
 
-download_images(cache_list)
+    download_images(cache_list)
 
-print()
-print("Done")
+    print()
+    print("Done")
