@@ -56,6 +56,20 @@ class BuildCard(commands.Cog):
         view.add_item(container)
         await ctx.reply(view=view)
 
+    def none_empty_discs(self, discs: list[Disc]):
+        result = []
+        for i in range(len(discs)):
+            result.append(discs[i])
+            # パファーエレクトロ[1] から数字部分を取得
+            num = int(discs[i]["name"][-2])
+            if i + 1 < len(discs):
+                next_num = int(discs[i + 1]["name"][-2])
+                if next_num > num + 1:
+                    for _ in range(num, next_num):
+                        result.append(None)
+
+        return result
+
     @commands.hybrid_command()
     async def buildcard(self, ctx: Context, agent_id: int) -> None:
         await ctx.defer()
@@ -172,9 +186,21 @@ class BuildCard(commands.Cog):
         files = []
 
         discs: list[Disc] = agent["equip"]
+        if len(discs) < 6:
+            discs = self.none_empty_discs(discs)
 
         total_disc_score = 0.0
+
         for i, disc in enumerate(discs):
+            if disc is None:
+                log.info("Disc is None, adding fallback")
+
+                file = discord.File("./assets/discimg/fallback.png", f"fallback{i}.png")
+                files.append(file)
+
+                disc_media_gallery.add_item(media=file)
+                continue
+
             # Calc score
             hit_count = 0
             max_hit_count = 5
