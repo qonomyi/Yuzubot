@@ -44,9 +44,13 @@ def find_id_map_by_two_keys(c, key1: str, key2: str, min_value_length: int = 0):
 
 def find_id_map_by_value(c, key: str, val: str):
     # find_id_map_by_two_keysと同じですが、一つの{key: value}から探します。
-    mapping_pattern = r"\{" + f"{key}:{val}" + r",(\w+:\w+,?)+\}"
+    mapping_pattern = r"\{" + f'{key}:"?{val}"?' + r'(,?\w+:"?[\w\-]+"?)+\}'
     mapping_match = re.search(mapping_pattern, c, re.DOTALL)
 
-    p = re.findall(r"(\w+):(\w+)", mapping_match.group())
+    mapping = {}
+    if not mapping_match:
+        return mapping
+
+    p = re.findall(r'"?(\w+)"?:"?(\w+)"?', mapping_match.group())
     mapping = {k: v for k, v in p}
     return mapping
