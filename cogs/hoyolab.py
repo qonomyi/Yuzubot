@@ -86,19 +86,16 @@ class HoyoLab(commands.Cog):
 
     @commands.command()
     async def owned(self, ctx: Context) -> None:
-        creds_query = await self.bot.hoyolab_creds_db.execute(
-            "SELECT * FROM creds WHERE user_id=?", (ctx.author.id,)
-        )
-        creds = await creds_query.fetchone()
+        creds = await self.bot.hoyolab_creds.get_zzz(ctx.author.id)
+
         if creds is None:
+            await ctx.reply("fuck")
             return
 
-        cookies = json.loads(creds[2])
-        cookies["e_nap_token"] = await self.bot.zzzclient.get_e_nap_token(
-            cookies, creds[1]
+        owned = await self.bot.zzzclient.get_owned_agent_list(
+            creds["cookies"], creds["zzz_uid"]
         )
 
-        owned = await self.bot.zzzclient.get_owned_agent_list(cookies, creds[1])
         b = BytesIO(json.dumps(owned, indent=2, ensure_ascii=False).encode("utf-8"))
         file = discord.File(b, filename="owned.json")
 
@@ -106,21 +103,15 @@ class HoyoLab(commands.Cog):
 
     @commands.command()
     async def detail(self, ctx: Context, agent_id: int) -> None:
-        creds_query = await self.bot.hoyolab_creds_db.execute(
-            "SELECT * FROM creds WHERE user_id=?", (ctx.author.id,)
-        )
-        creds = await creds_query.fetchone()
-        if creds is None:
-            return
+        creds = await self.bot.hoyolab_creds.get_zzz(ctx.author.id)
 
-        cookies = json.loads(creds[2])
-        cookies["e_nap_token"] = await self.bot.zzzclient.get_e_nap_token(
-            cookies, creds[1]
-        )
+        if creds is None:
+            await ctx.reply("fuck")
+            return
 
         try:
             agent = await self.bot.zzzclient.get_agent_detail(
-                cookies, creds[1], agent_id
+                creds["cookies"], creds["zzz_uid"], agent_id
             )
         except HoYoAPIError as e:
             await ctx.reply(str(e))
