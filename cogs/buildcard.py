@@ -104,6 +104,8 @@ class BuildCard(commands.Cog):
 
     @commands.hybrid_command()
     @app_commands.autocomplete(agent_id=agent_id_autocomplete)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def buildcard(self, ctx: Context, agent_id: int) -> None:
         await ctx.defer()
         start_time = time.time()
