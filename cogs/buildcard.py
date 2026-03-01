@@ -57,10 +57,13 @@ class BuildCard(commands.Cog):
         view.add_item(container)
         await ctx.reply(view=view)
 
-    def none_empty_discs(self, discs: list[Disc]):
+    def none_empty_discs(self, discs: list[Disc | None]) -> list[Disc | None]:
         result: list[Disc | None] = [None] * 6
         for disc in discs:
             try:
+                if not disc:
+                    continue
+
                 # パファー・エレクトロ[1] から数字部分を取得
                 num = int(disc["name"][-2])
                 idx = num - 1
@@ -93,26 +96,23 @@ class BuildCard(commands.Cog):
 
         container = ui.Container(accent_color=agent_color)
 
-        rarity_icon_emoji = str(
+        rarity_icon_emoji = (
             await self.bot.zzzemoji.get_rarity_emoji(
                 agent["avatar"]["rarity"], icon=True
             )
+            or ""
         )
 
         element_emoji = (
-            str(
-                await self.bot.zzzemoji.get_element_emoji(
-                    agent["avatar"]["element_type"], agent["avatar"]["sub_element_type"]
-                )
+            await self.bot.zzzemoji.get_element_emoji(
+                agent["avatar"]["element_type"], agent["avatar"]["sub_element_type"]
             )
             or ""
         )
 
         profession_emoji = (
-            str(
-                await self.bot.zzzemoji.get_profession_emoji(
-                    agent["avatar"]["avatar_profession"]
-                )
+            await self.bot.zzzemoji.get_profession_emoji(
+                agent["avatar"]["avatar_profession"]
             )
             or ""
         )
@@ -134,9 +134,7 @@ class BuildCard(commands.Cog):
         stats_text = ""
         for i, p in enumerate(agent["avatar"]["properties"]):
             prop_name = p["property_name"]
-            prop_emoji = (
-                str(await self.bot.zzzemoji.get_prop_emoji(p["property_id"])) or ""
-            )
+            prop_emoji = await self.bot.zzzemoji.get_prop_emoji(p["property_id"]) or ""
 
             stats_text += f"> {prop_emoji} {prop_name}: {p['final']}\n"
 
@@ -154,8 +152,8 @@ class BuildCard(commands.Cog):
         if we is None:
             pass
         else:
-            we_rarity_emoji = str(
-                await self.bot.zzzemoji.get_rarity_emoji(we["rarity"], icon=False)
+            we_rarity_emoji = (
+                await self.bot.zzzemoji.get_rarity_emoji(we["rarity"], icon=False) or ""
             )
 
             we_name = we["name"]
@@ -182,9 +180,10 @@ class BuildCard(commands.Cog):
         skills = agent["avatar"]["skills"]
         skills_text_raw = ""
         for skill in skills:
-            skill_emoji = str(
-                await self.bot.zzzemoji.get_skill_emoji(skill["skill_type"])
+            skill_emoji = (
+                await self.bot.zzzemoji.get_skill_emoji(skill["skill_type"]) or ""
             )
+
             skills_text_raw += f"{skill_emoji} {skill['level']} | "
 
         skills_text_raw = skills_text_raw[:-2]
@@ -196,10 +195,8 @@ class BuildCard(commands.Cog):
         disc_media_gallery = ui.MediaGallery()
         files = []
 
-        discs: list[Disc] = agent["equip"]
-        log.info(len(discs))
+        discs: list[Disc | None] = agent["equip"]
         if len(discs) < 6:
-            log.info("none_empty_discs")
             discs = self.none_empty_discs(discs)
 
         total_disc_score = 0.0

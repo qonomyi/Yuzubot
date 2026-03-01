@@ -45,7 +45,7 @@ class ZZZEmojiHelper:
                 log.info(f"Emoji created: {emoji.name} ({emoji.id})")
 
         self.emojis = await self.bot.fetch_application_emojis()
-        self.emoji_map = {e.name: e.id for e in self.emojis}
+        self.emoji_map = {e.name: e for e in self.emojis}
         log.info("Emoji init done")
 
     async def data_init(self) -> None:
@@ -61,22 +61,31 @@ class ZZZEmojiHelper:
         log.info("Data init done")
         log.debug(self.data)
 
-    async def get_profession_emoji(self, id: int) -> Emoji | None:
+    def _get(self, emoji_name: str, return_raw_emoji: bool = False):
+        emoji = self.emoji_map.get(emoji_name)
+
+        if not emoji:
+            return None
+        elif return_raw_emoji:
+            return emoji
+        else:
+            return str(emoji)
+
+    async def get_profession_emoji(
+        self, id: int, return_raw_emoji: bool = False
+    ) -> Emoji | str | None:
         profession = self.data.get("professions", {}).get(str(id))
 
         if profession is None:
             return None
 
         emoji_name = f"profession_{profession}_icon"
-        emoji_id = self.emoji_map.get(emoji_name)
-        if emoji_id is None:
-            return None
 
-        return await self.bot.fetch_application_emoji(emoji_id)
+        return self._get(emoji_name, return_raw_emoji)
 
     async def get_element_emoji(
-        self, element_id: int, sub_element_id: int = 0
-    ) -> Emoji | None:
+        self, element_id: int, sub_element_id: int = 0, return_raw_emoji: bool = False
+    ) -> Emoji | str | None:
         element = self.data.get("elements", {}).get(str(element_id))
         sub_element = self.data.get("sub_elements", {}).get(str(sub_element_id))
 
@@ -88,35 +97,27 @@ class ZZZEmojiHelper:
         else:
             emoji_name = f"attribute_{element}_icon"
 
-        emoji_id = self.emoji_map.get(emoji_name)
-        if emoji_id is None:
-            return None
+        return self._get(emoji_name, return_raw_emoji)
 
-        return await self.bot.fetch_application_emoji(emoji_id)
-
-    async def get_rarity_emoji(self, rarity: str, icon: bool = False) -> Emoji | None:
+    async def get_rarity_emoji(
+        self, rarity: str, icon: bool = False, return_raw_emoji: bool = False
+    ) -> Emoji | str | None:
         emoji_name = f"rarity_{rarity.lower()}{('_icon' if icon else '')}"
-        emoji_id = self.emoji_map.get(emoji_name)
-        if emoji_id is None:
-            return None
 
-        return await self.bot.fetch_application_emoji(emoji_id)
+        return self._get(emoji_name, return_raw_emoji)
 
-    async def get_prop_emoji(self, property_id: int) -> Emoji | None:
+    async def get_prop_emoji(
+        self, property_id: int, return_raw_emoji: bool = False
+    ) -> Emoji | str | None:
         prop = self.data.get("properties", {}).get(str(property_id))
         prop = prop.replace("-", "_")
 
         emoji_name = f"prop_{prop}_icon"
-        emoji_id = self.emoji_map.get(emoji_name)
-        if emoji_id is None:
-            return None
 
-        return await self.bot.fetch_application_emoji(emoji_id)
+        return self._get(emoji_name, return_raw_emoji)
 
-    async def get_skill_emoji(self, skill_type: int) -> Emoji | None:
+    async def get_skill_emoji(
+        self, skill_type: int, return_raw_emoji: bool = False
+    ) -> Emoji | str | None:
         emoji_name = f"skill_icon_{skill_type}"
-        emoji_id = self.emoji_map.get(emoji_name)
-        if emoji_id is None:
-            return None
-
-        return await self.bot.fetch_application_emoji(emoji_id)
+        return self._get(emoji_name)
