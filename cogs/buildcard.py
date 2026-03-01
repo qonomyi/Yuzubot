@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import time
 from typing import TYPE_CHECKING
 
@@ -57,17 +58,17 @@ class BuildCard(commands.Cog):
         await ctx.reply(view=view)
 
     def none_empty_discs(self, discs: list[Disc]):
-        result = []
-        for i in range(len(discs)):
-            result.append(discs[i])
-            # パファーエレクトロ[1] から数字部分を取得
-            num = int(discs[i]["name"][-2])
-            if i + 1 < len(discs):
-                next_num = int(discs[i + 1]["name"][-2])
-                if next_num > num + 1:
-                    for _ in range(num, next_num):
-                        result.append(None)
+        result: list[Disc | None] = [None] * 6
+        for disc in discs:
+            try:
+                # パファー・エレクトロ[1] から数字部分を取得
+                num = int(disc["name"][-2])
+                idx = num - 1
 
+                if 0 <= idx < 6:
+                    result[idx] = disc
+            except (ValueError, IndexError):
+                continue
         return result
 
     @commands.hybrid_command()
@@ -116,10 +117,18 @@ class BuildCard(commands.Cog):
             or ""
         )
 
+        has_awaken = agent["avatar"]["skill_awaken"]["has_awaken_system"]
+        awaken_level = 0
+
+        awaken_text = ""
+        if has_awaken:
+            awaken_level = agent["avatar"]["skill_awaken"]["awaken_level"]
+            awaken_text += f" ･ Potential {awaken_level}"
+
         # Main Stats
         main_text_raw = (
             f"# {rarity_icon_emoji} {agent['avatar']['name_mi18n']} {element_emoji}{profession_emoji}\n"
-            + f"-# Lvl {agent['avatar']['level']} ･ Mindscape {agent['avatar']['rank']}\n"
+            + f"-# Lvl {agent['avatar']['level']} ･ Mindscape {agent['avatar']['rank']}{awaken_text}\n"
         )
 
         stats_text = ""
@@ -152,11 +161,13 @@ class BuildCard(commands.Cog):
             we_name = we["name"]
             we_prop = we["properties"][0]
             we_sub_prop = we["main_properties"][0]
+            we_talent_content = re.sub(r"<\/?(\w|=|#)+>", "", we["talent_content"])
             we_text_raw = (
                 f"## {we_rarity_emoji} {we_name}\n"
                 + f"-# Lvl {we['level']} ･ Phase {we['star']}\n"
                 + f"> {we_prop['property_name']}: {we_prop['base']} ･ "
                 + f"{we_sub_prop['property_name']}: {we_sub_prop['base']}\n"
+                + f"> -# {we_talent_content}"
             )
 
             we_text = ui.TextDisplay(we_text_raw)
@@ -186,7 +197,9 @@ class BuildCard(commands.Cog):
         files = []
 
         discs: list[Disc] = agent["equip"]
+        log.info(len(discs))
         if len(discs) < 6:
+            log.info("none_empty_discs")
             discs = self.none_empty_discs(discs)
 
         total_disc_score = 0.0
