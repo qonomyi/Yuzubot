@@ -1,10 +1,16 @@
 from typing import TypedDict
 
 
+class HoYoUserDataRaw(TypedDict):
+    user_id: int
+    zzz_uid: str
+    cookies: str
+
+
 class HoYoUserData(TypedDict):
     user_id: int
-    zzz_uid: int | str
-    cookies: str
+    zzz_uid: str
+    cookies: dict
 
 
 class DiscProperty(TypedDict):

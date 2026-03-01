@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import aiosqlite
 
 from cogs.utils import cipher
-from cogs.utils.types import HoYoUserData
+from cogs.utils.types import HoYoUserData, HoYoUserDataRaw
 
 if TYPE_CHECKING:
     from bot import Yuzubot
@@ -51,7 +51,7 @@ class HoYoCredsDBHelper:
 
         return True
 
-    async def get(self, user_id: int) -> dict | None:
+    async def get(self, user_id: int) -> HoYoUserData | None:
         hashed_user_id = cipher.hash_user_id(user_id)
         cur = await self.db.execute(
             "SELECT * FROM creds WHERE user_id=?", (hashed_user_id,)
@@ -62,7 +62,7 @@ class HoYoCredsDBHelper:
             return None
 
         user_data_raw = row["user_data"]
-        user_data: HoYoUserData = cipher.decrypt_user_data(user_data_raw)
+        user_data: HoYoUserDataRaw = cipher.decrypt_user_data(user_data_raw)
 
         return {
             "user_id": user_data["user_id"],
@@ -70,9 +70,9 @@ class HoYoCredsDBHelper:
             "cookies": json.loads(user_data["cookies"]),
         }
 
-    async def get_zzz(self, user_id: int) -> dict | None:
+    async def get_zzz(self, user_id: int) -> HoYoUserData | None:
         # returns credentials with refreshed e_nap_token
-        creds = await self.get(user_id)
+        creds: HoYoUserData | None = await self.get(user_id)
         if creds is None:
             return
 

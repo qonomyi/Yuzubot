@@ -8,12 +8,12 @@ import time
 from typing import TYPE_CHECKING
 
 import discord
-from discord import ui
+from discord import Interaction, app_commands, ui
 from discord.ext import commands
 from discord.ext.commands import Context
 
 from .utils import discimg
-from .utils.types import Disc, DiscProperty
+from .utils.types import Disc, DiscProperty, HoYoUserData
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 class BuildCard(commands.Cog):
     def __init__(self, bot: Yuzubot) -> None:
         self.bot: Yuzubot = bot
+        self.owned_cache: dict[str, dict] = {}
 
     @commands.command()
     async def b(self, ctx: Context) -> None:
@@ -74,7 +75,35 @@ class BuildCard(commands.Cog):
                 continue
         return result
 
+    async def buildcard_get_owned(self, user_id: int) -> dict:
+        if c := self.owned_cache.get(str(user_id)):
+            return c
+        else:
+            creds: HoYoUserData | None = await self.bot.hoyolab_creds.get_zzz(user_id)
+            if creds is None:
+                return {}
+            owned = await self.bot.zzzclient.get_owned_agent_list(
+                creds["cookies"], creds["zzz_uid"]
+            )
+            self.owned_cache[str(user_id)] = {
+                a["full_name_mi18n"]: a["id"] for a in owned
+            }
+
+            return self.owned_cache.get(str(user_id)) or {}
+
+    async def agent_id_autocomplete(
+        self, interaction: Interaction, current: str
+    ) -> list[app_commands.Choice[int]]:
+        assert interaction.user.id is not None
+        owned = await self.buildcard_get_owned(interaction.user.id)
+        return [
+            app_commands.Choice(name=name, value=agent_id)
+            for name, agent_id in owned.items()
+            if current.lower() in name.lower()
+        ][:25]
+
     @commands.hybrid_command()
+    @app_commands.autocomplete(agent_id=agent_id_autocomplete)
     async def buildcard(self, ctx: Context, agent_id: int) -> None:
         await ctx.defer()
         start_time = time.time()
