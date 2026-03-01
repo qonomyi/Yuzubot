@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 import time
 from io import BytesIO
 
@@ -19,6 +20,9 @@ log = logging.getLogger(__name__)
 
 def get_disc_icon(disc: Disc) -> str:
     # Returns cached icon path. if cache not found, it downloads from source.
+    dp = pathlib.Path(assets_path + cache_path)
+    dp.mkdir(parents=True, exist_ok=True)
+
     suit_id = str(disc["equip_suit"]["suit_id"])
     if os.path.isfile(cache_path + suit_id + ".png"):
         return cache_path + suit_id + ".png"
