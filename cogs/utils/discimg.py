@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 def get_disc_icon(disc: Disc) -> str:
     # Returns cached icon path. if cache not found, it downloads from source.
-    dp = pathlib.Path(assets_path + cache_path)
+    dp = pathlib.Path(cache_path)
     dp.mkdir(parents=True, exist_ok=True)
 
     suit_id = str(disc["equip_suit"]["suit_id"])
