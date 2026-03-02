@@ -10,6 +10,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context
 
+from bot import groups
 from cogs.utils.types import HoYoCredsRaw
 
 from .utils.clients.baseclient import HoYoAPIError
@@ -92,10 +93,6 @@ class HoyoLab(commands.Cog):
     async def owned(self, ctx: Context) -> None:
         creds = await self.bot.hoyolab_creds.get_zzz(ctx.author.id)
 
-        if creds is None:
-            await ctx.reply("fuck")
-            return
-
         owned = await self.bot.zzzclient.get_owned_agent_list(
             creds["cookies"], creds["zzz_uid"]
         )
@@ -108,11 +105,6 @@ class HoyoLab(commands.Cog):
     @commands.command()
     async def detail(self, ctx: Context, agent_id: int) -> None:
         creds = await self.bot.hoyolab_creds.get_zzz(ctx.author.id)
-
-        if creds is None:
-            await ctx.reply("fuck")
-            return
-
         try:
             agent = await self.bot.zzzclient.get_agent_detail(
                 creds["cookies"], creds["zzz_uid"], agent_id
@@ -125,6 +117,16 @@ class HoyoLab(commands.Cog):
         file = discord.File(b, filename="owned.json")
 
         await ctx.reply(file=file)
+
+    @commands.command()
+    async def whoami(self, ctx: Context) -> None:
+        creds = await self.bot.hoyolab_creds.get(ctx.author.id)
+        await ctx.reply(creds["zzz_uid"], ephemeral=True)
+
+    @commands.command()
+    @groups.in_group("hoyolab")
+    async def hla(self, ctx: Context) -> None:
+        await ctx.reply("ok")
 
 
 async def setup(bot: Yuzubot):

@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 class HoYoCredsNotFoundError(Exception):
     def __init__(self, user_id: str | int) -> None:
-        super().__init__(f"No HoYoLab data found for User: {user_id}")
+        super().__init__(f"No credential found for User: {user_id}")
 
 
 class HoYoCredsDBHelper:

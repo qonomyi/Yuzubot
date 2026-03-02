@@ -8,16 +8,19 @@ import aiohttp
 import aiosqlite
 import discord
 from discord.ext import commands
+from discord.ext.commands import Context
 
 import config
 from cogs.utils.clients import HoYoClient, ZZZClient
-from cogs.utils.hoyocreds import HoYoCredsDBHelper
+from cogs.utils.groups import GroupsHelper
+from cogs.utils.hoyocreds import HoYoCredsDBHelper, HoYoCredsNotFoundError
 from cogs.utils.zzzemoji import ZZZEmojiHelper
 
 log = logging.getLogger(__name__)
 
 
 initial_extensions = (
+    "cogs.admin",
     "cogs.buildcard",
     "cogs.hoyolab",
 )
@@ -50,6 +53,9 @@ def setup_logging():
 
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+
+
+groups = GroupsHelper()
 
 
 class Yuzubot(commands.Bot):
@@ -100,8 +106,22 @@ class Yuzubot(commands.Bot):
         await self._hoyolab_creds_db.close()
         await super().close()
 
+    def get_original_error(self, error):
+        while hasattr(error, "original"):
+            error = error.original
+        return error
 
-setup_logging()
+    async def on_command_error(self, ctx: Context, error) -> None:
+        orig_error = self.get_original_error(error)
+        if isinstance(orig_error, HoYoCredsNotFoundError):
+            await ctx.reply("No credential found", ephemeral=True)
+            return
 
-bot = Yuzubot()
-bot.run(config.token, log_handler=None)
+        # return await super().on_command_error(ctx, error)
+
+
+if __name__ == "__main__":
+    setup_logging()
+
+    bot = Yuzubot()
+    bot.run(config.token, log_handler=None)

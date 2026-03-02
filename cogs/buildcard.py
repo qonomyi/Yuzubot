@@ -11,6 +11,8 @@ from discord import Interaction, app_commands, ui
 from discord.ext import commands
 from discord.ext.commands import Context
 
+from cogs.utils.hoyocreds import HoYoCredsNotFoundError
+
 from .utils import discimg
 from .utils.types import Disc, DiscProperty, HoYoCreds
 
@@ -48,7 +50,7 @@ class BuildCard(commands.Cog):
         else:
             try:
                 creds: HoYoCreds = await self.bot.hoyolab_creds.get_zzz(user_id)
-            except:
+            except HoYoCredsNotFoundError:
                 return {}
 
             owned = await self.bot.zzzclient.get_owned_agent_list(
@@ -77,10 +79,6 @@ class BuildCard(commands.Cog):
         await ctx.defer()
         start_time = time.time()
         creds = await self.bot.hoyolab_creds.get_zzz(ctx.author.id)
-
-        if creds is None:
-            await ctx.reply("no credential info found in db")
-            return
 
         agent = await self.bot.zzzclient.get_agent_detail(
             creds["cookies"], creds["zzz_uid"], agent_id
