@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from cogs.utils.types import HoYoUserDataRaw
+from cogs.utils.types import HoYoCredsRaw
 
 from .utils.clients.baseclient import HoYoAPIError
 
@@ -76,7 +76,7 @@ class HoyoLab(commands.Cog):
 
         cookies["e_nap_token"] = e_nap_token
 
-        user_data_raw: HoYoUserDataRaw = {
+        user_data_raw: HoYoCredsRaw = {
             "user_id": ctx.author.id,
             "zzz_uid": zzz_uid,
             "cookies": json.dumps(cookies),

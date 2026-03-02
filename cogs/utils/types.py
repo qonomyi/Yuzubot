@@ -1,13 +1,13 @@
 from typing import TypedDict
 
 
-class HoYoUserDataRaw(TypedDict):
+class HoYoCredsRaw(TypedDict):
     user_id: int
     zzz_uid: str
     cookies: str
 
 
-class HoYoUserData(TypedDict):
+class HoYoCreds(TypedDict):
     user_id: int
     zzz_uid: str
     cookies: dict

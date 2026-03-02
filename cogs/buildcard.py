@@ -12,7 +12,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from .utils import discimg
-from .utils.types import Disc, DiscProperty, HoYoUserData
+from .utils.types import Disc, DiscProperty, HoYoCreds
 
 log = logging.getLogger(__name__)
 
@@ -46,9 +46,11 @@ class BuildCard(commands.Cog):
         if c := self.owned_cache.get(str(user_id)):
             return c
         else:
-            creds: HoYoUserData | None = await self.bot.hoyolab_creds.get_zzz(user_id)
-            if creds is None:
+            try:
+                creds: HoYoCreds = await self.bot.hoyolab_creds.get_zzz(user_id)
+            except:
                 return {}
+
             owned = await self.bot.zzzclient.get_owned_agent_list(
                 creds["cookies"], creds["zzz_uid"]
             )

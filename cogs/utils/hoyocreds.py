@@ -7,12 +7,17 @@ from typing import TYPE_CHECKING
 import aiosqlite
 
 from cogs.utils import cipher
-from cogs.utils.types import HoYoUserData, HoYoUserDataRaw
+from cogs.utils.types import HoYoCreds, HoYoCredsRaw
 
 if TYPE_CHECKING:
     from bot import Yuzubot
 
 log = logging.getLogger(__name__)
+
+
+class HoYoCredsNotFoundError(Exception):
+    def __init__(self, user_id: str | int) -> None:
+        super().__init__(f"No HoYoLab data found for User: {user_id}")
 
 
 class HoYoCredsDBHelper:
@@ -22,7 +27,7 @@ class HoYoCredsDBHelper:
 
     async def init_db(self) -> None:
         query = """
-        CREATE TABLE IF NOT EXISTS creds ( 
+        CREATE TABLE IF NOT EXISTS creds (
              user_id TEXT PRIMARY KEY,
              user_data TEXT
         )
@@ -33,9 +38,9 @@ class HoYoCredsDBHelper:
 
         log.info("HoYoCredsDB Initialized")
 
-    async def register(self, user_data: HoYoUserDataRaw) -> bool:
+    async def register(self, user_data: HoYoCredsRaw) -> bool:
         query = """
-        INSERT INTO creds VALUES 
+        INSERT INTO creds VALUES
             (?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
             user_data = excluded.user_data;
@@ -51,7 +56,7 @@ class HoYoCredsDBHelper:
 
         return True
 
-    async def get(self, user_id: int) -> HoYoUserData | None:
+    async def get(self, user_id: int) -> HoYoCreds:
         hashed_user_id = cipher.hash_user_id(user_id)
         cur = await self.db.execute(
             "SELECT * FROM creds WHERE user_id=?", (hashed_user_id,)
@@ -59,10 +64,10 @@ class HoYoCredsDBHelper:
         row = await cur.fetchone()
 
         if row is None:
-            return None
+            raise HoYoCredsNotFoundError(user_id)
 
         user_data_raw = row["user_data"]
-        user_data: HoYoUserDataRaw = cipher.decrypt_user_data(user_data_raw)
+        user_data: HoYoCredsRaw = cipher.decrypt_user_data(user_data_raw)
 
         return {
             "user_id": user_data["user_id"],
@@ -70,11 +75,9 @@ class HoYoCredsDBHelper:
             "cookies": json.loads(user_data["cookies"]),
         }
 
-    async def get_zzz(self, user_id: int) -> HoYoUserData | None:
+    async def get_zzz(self, user_id: int) -> HoYoCreds:
         # returns credentials with refreshed e_nap_token
-        creds: HoYoUserData | None = await self.get(user_id)
-        if creds is None:
-            return
+        creds: HoYoCreds = await self.get(user_id)
 
         e_nap_token = await self.bot.zzzclient.get_e_nap_token(
             creds["cookies"], creds["zzz_uid"]
