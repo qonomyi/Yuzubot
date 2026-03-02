@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from cogs.utils.types import HoYoUserData
+from cogs.utils.types import HoYoUserDataRaw
 
 from .utils.clients.baseclient import HoYoAPIError
 
@@ -76,13 +76,13 @@ class HoyoLab(commands.Cog):
 
         cookies["e_nap_token"] = e_nap_token
 
-        user_data: HoYoUserData = {
+        user_data_raw: HoYoUserDataRaw = {
             "user_id": ctx.author.id,
             "zzz_uid": zzz_uid,
             "cookies": json.dumps(cookies),
         }
 
-        await self.bot.hoyolab_creds.register(user_data)
+        await self.bot.hoyolab_creds.register(user_data_raw)
 
         content += "\n\nRegister Successful!"
         await msg.edit(content=content)

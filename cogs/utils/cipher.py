@@ -4,13 +4,13 @@ import json
 from cryptography.fernet import Fernet
 
 import config
-from cogs.utils.types import HoYoUserData, HoYoUserDataRaw
+from cogs.utils.types import HoYoUserDataRaw
 
 fernet = Fernet(config.encrypt_key)
 salt = config.hash_salt
 
 
-def encrypt_user_data(raw_user_data: HoYoUserData) -> str:
+def encrypt_user_data(raw_user_data: HoYoUserDataRaw) -> str:
     data_dump = json.dumps(raw_user_data)
     encrypted_data = fernet.encrypt(data_dump.encode()).decode()
     return encrypted_data

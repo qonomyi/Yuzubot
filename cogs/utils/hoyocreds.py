@@ -33,7 +33,7 @@ class HoYoCredsDBHelper:
 
         log.info("HoYoCredsDB Initialized")
 
-    async def register(self, user_data: HoYoUserData) -> bool:
+    async def register(self, user_data: HoYoUserDataRaw) -> bool:
         query = """
         INSERT INTO creds VALUES 
             (?, ?)
