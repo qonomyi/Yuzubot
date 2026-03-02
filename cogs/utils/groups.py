@@ -21,9 +21,13 @@ class GroupsHelper:
                 self.groups = json.load(f)
 
     def in_group(self, group_name: str):
-        def predicate(ctx: Context):
+        async def predicate(ctx: Context):
             group = self.groups.get(group_name)
             if not group:
+                await ctx.reply(
+                    f"You have no permission to execute this command. (Required: {group_name})",
+                    ephemeral=True,
+                )
                 return False
 
             if "*" in group:
@@ -31,6 +35,10 @@ class GroupsHelper:
             elif ctx.author.id in group:
                 return True
             else:
+                await ctx.reply(
+                    f"You have no permission to execute this command. (Required: {group_name})",
+                    ephemeral=True,
+                )
                 return False
 
         return commands.check(predicate)

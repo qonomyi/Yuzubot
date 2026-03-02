@@ -11,6 +11,7 @@ from discord import Interaction, app_commands, ui
 from discord.ext import commands
 from discord.ext.commands import Context
 
+from bot import groups
 from cogs.utils.hoyocreds import HoYoCredsNotFoundError
 
 from .utils import discimg
@@ -73,6 +74,7 @@ class BuildCard(commands.Cog):
             if current.lower() in name.lower()
         ][:25]
 
+    @groups.in_group("hoyolab")
     @commands.hybrid_command()
     @app_commands.autocomplete(agent_id=agent_id_autocomplete)
     async def buildcard(self, ctx: Context, agent_id: int) -> None:

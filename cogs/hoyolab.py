@@ -25,7 +25,13 @@ class HoyoLab(commands.Cog):
     def __init__(self, bot: Yuzubot) -> None:
         self.bot: Yuzubot = bot
 
-    @commands.hybrid_command(name="hlregister")
+    @groups.in_group("hoyolab")
+    @commands.hybrid_group("hoyolab")
+    async def hoyolab(self, ctx: Context):
+        pass
+
+    @groups.in_group("hoyolab")
+    @hoyolab.command(name="register")
     async def hoyolab_register(self, ctx: Context, user_cookies: str) -> None:
         # Parse Cookies
         content = "Parsing cookies..."
@@ -122,11 +128,6 @@ class HoyoLab(commands.Cog):
     async def whoami(self, ctx: Context) -> None:
         creds = await self.bot.hoyolab_creds.get(ctx.author.id)
         await ctx.reply(creds["zzz_uid"], ephemeral=True)
-
-    @commands.command()
-    @groups.in_group("hoyolab")
-    async def hla(self, ctx: Context) -> None:
-        await ctx.reply("ok")
 
 
 async def setup(bot: Yuzubot):
